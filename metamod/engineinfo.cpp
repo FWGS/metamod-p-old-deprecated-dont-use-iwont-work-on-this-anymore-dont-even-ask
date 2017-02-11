@@ -299,12 +299,16 @@ int DLLINTERNAL EngineInfo::phdr_r_debug( void )
 
 	// Search if we have a DT_DEBUG symbol in our DYNAMIC segment, which
 	// ought to be set to the r_debug structure's address.
+#ifndef __ANDROID__
 	for (pDyn = _DYNAMIC; pDyn->d_tag != DT_NULL; ++pDyn) {
 		if (pDyn->d_tag == DT_DEBUG) {
 			pr_debug = (struct r_debug *) pDyn->d_un.d_ptr;
 			break;
 		}
 	}
+#else
+	return NOTFOUND;
+#endif
 
 	if ( DT_NULL == pDyn->d_tag ) {
 	}

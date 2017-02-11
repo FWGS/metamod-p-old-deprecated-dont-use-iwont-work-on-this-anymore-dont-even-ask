@@ -142,6 +142,8 @@ mBOOL DLLINTERNAL setup_gamedll(gamedll_t *gamedll) {
 	if((known=lookup_game(gamedll->name))) {
 #ifdef _WIN32
 		knownfn=known->win_dll;
+#elif defined(__ANDROID__)
+		knownfn="libserver_hardfp.so"; // FIXME
 #elif defined(linux)
 		knownfn=known->linux_so;
 	#ifdef __x86_64__
@@ -167,7 +169,7 @@ mBOOL DLLINTERNAL setup_gamedll(gamedll_t *gamedll) {
 		
 		// Do this before autodetecting gamedll from "dlls/*.dll"
 		if(!Config->gamedll) {
-#ifdef linux
+#if defined(linux) && !defined(__ANDROID__)
 			// The engine changed game dll lookup behaviour in that it strips
 			// anything after the last '_' from the name and tries to load the
 			// resulting name. The DSO names were changed and do not have the
@@ -218,6 +220,7 @@ mBOOL DLLINTERNAL setup_gamedll(gamedll_t *gamedll) {
 								strippedfn) );
 			}
 #endif /* linux */
+
 			// If no file to be used was found, try the old known DLL file
 			// name.
 			if (0 == usedfn) {
@@ -270,6 +273,7 @@ mBOOL DLLINTERNAL setup_gamedll(gamedll_t *gamedll) {
 				STRNCPY(gamedll->pathname, install_path, sizeof(gamedll->pathname));
 		}
 	}
+	#ifndef __ANDROID__
 	// Else use Known-list dll.
 	else if(known) {
 		safevoid_snprintf(gamedll->pathname, sizeof(gamedll->pathname), "%s/dlls/%s", 
@@ -280,6 +284,9 @@ mBOOL DLLINTERNAL setup_gamedll(gamedll_t *gamedll) {
 		safevoid_snprintf(gamedll->pathname, sizeof(gamedll->pathname), "%s/dlls/%s", 
 				gamedll->gamedir, autofn);
 	}
+	#else
+	safevoid_snprintf(gamedll->pathname, sizeof(gamedll->pathname), "%s", autofn);
+	#endif
 
 	// get filename from pathname
 	cp=strrchr(gamedll->pathname, '/');

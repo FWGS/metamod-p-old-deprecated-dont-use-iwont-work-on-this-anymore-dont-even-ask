@@ -40,6 +40,22 @@
 #include "support_meta.h"			// full_gamedir_path,
 
 
+const char * DLLINTERNAL autodetect_gamedll_android( const gamedll_t *gamedll, const char *knownfn )
+{
+	static char buf[256];
+	char *gamelibdir;
+	
+	gamelibdir = getenv("XASH3D_GAMELIBDIR");
+	
+	if( gamelibdir )
+	{
+		safevoid_snprintf(buf, 256, "%s/%s", gamelibdir, "libserver_hardfp.so");
+		return buf;
+	}
+	
+	return 0;
+}
+
 // Search gamedir/dlls/*.dll for gamedlls
 //TODO: add META_DEBUG
 const char * DLLINTERNAL autodetect_gamedll(const gamedll_t *gamedll, const char *knownfn)
@@ -50,9 +66,16 @@ const char * DLLINTERNAL autodetect_gamedll(const gamedll_t *gamedll, const char
 	DIR *dir;
 	struct dirent *ent;
 	unsigned int fn_len;
+	
+	#ifdef __ANDROID__
+	
+	return autodetect_gamedll_android(gamedll, knownfn);
+	
+	#endif
 		
 	// Generate dllpath
 	safevoid_snprintf(buf, sizeof(buf), "%s/dlls", gamedll->gamedir);
+	
 	if(!full_gamedir_path(buf, dllpath)) {
 		//whine & return
 		META_WARNING("GameDLL-Autodetection: Directory '%s' doesn't exist.", buf);

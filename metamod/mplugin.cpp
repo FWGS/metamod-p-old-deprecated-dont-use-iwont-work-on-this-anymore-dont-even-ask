@@ -319,6 +319,20 @@ char * DLLINTERNAL MPlugin::resolve_dirs(const char *path) {
 	struct stat st;
 	static char buf[PATH_MAX];
 	char *found;
+	char *gamelibdir;
+	
+	gamelibdir = getenv("XASH3D_GAMELIBDIR");
+	
+	if( gamelibdir )
+	{
+		safevoid_snprintf(buf, sizeof(buf), "%s/%s", gamelibdir, path);
+	// try this path
+	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+		return(buf);
+	// try other file prefixes in this path
+	if((found=resolve_prefix(buf)))
+		return(found);
+	}
 
 	safevoid_snprintf(buf, sizeof(buf), "%s/%s", GameDLL.gamedir, path);
 	// try this path
@@ -343,6 +357,7 @@ char * DLLINTERNAL MPlugin::resolve_dirs(const char *path) {
 // Try:
 //     dir/mm_file
 //     dir/file
+//     dir/libfile
 // meta_errno values:
 //  - none
 char * DLLINTERNAL MPlugin::resolve_prefix(const char *path) {
@@ -364,6 +379,22 @@ char * DLLINTERNAL MPlugin::resolve_prefix(const char *path) {
 	else {
 		// no directory in given path
 		safevoid_snprintf(buf, sizeof(buf), "mm_%s", path);
+	}
+	// try this path
+	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+		return(buf);
+	// try other suffixes for this path
+	if((found=resolve_suffix(buf)))
+		return(found);
+		
+	if(cp) {
+		*cp='\0';
+		fname=cp+1;
+		safevoid_snprintf(buf, sizeof(buf), "%s/lib%s", dname, fname);
+	}
+	else {
+		// no directory in given path
+		safevoid_snprintf(buf, sizeof(buf), "lib%s", path);
 	}
 	// try this path
 	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
@@ -415,6 +446,12 @@ char * DLLINTERNAL MPlugin::resolve_suffix(const char *path) {
 	safevoid_snprintf(buf, sizeof(buf), "%s.dll", path);
 #elif defined(linux)
 	safevoid_snprintf(buf, sizeof(buf), "%s.so", path);
+	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+		return(buf);
+
+	safevoid_snprintf(buf, sizeof(buf), "%s_hardfp.so", path);
+	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+		return(buf);
 #else
 #error "OS unrecognized"
 #endif /* _WIN32 */
