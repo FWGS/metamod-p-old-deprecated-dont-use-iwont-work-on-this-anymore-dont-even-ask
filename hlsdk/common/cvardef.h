@@ -12,6 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
+#pragma once
 #ifndef CVARDEF_H
 #define CVARDEF_H
 
@@ -25,12 +26,17 @@
 #define FCVAR_PRINTABLEONLY (1<<7)  // This cvar's string cannot contain unprintable characters ( e.g., used for player name etc ).
 #define FCVAR_UNLOGGED		(1<<8)  // If this is a FCVAR_SERVER, don't log changes to the log file / console if we are creating a log
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
+
 typedef struct cvar_s
 {
-	char	*name;
+	const char	*name;
 	char	*string;
 	int		flags;
 	float	value;
 	struct cvar_s *next;
 } cvar_t;
-#endif
+
+#endif 
