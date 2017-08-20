@@ -255,7 +255,7 @@ static void mm_PM_Init(struct playermove_s *ppmove) {
 	META_DLLAPI_HANDLE_void(FN_PM_INIT, pfnPM_Init, p, (ppmove));
 	RETURN_API_void();
 }
-static char mm_PM_FindTextureType(char *name) {
+static char mm_PM_FindTextureType(const char *name) {
 	META_DLLAPI_HANDLE(char, '\0', FN_PM_FINDTEXTURETYPE, pfnPM_FindTextureType, p, (name));
 	RETURN_API(char);
 }

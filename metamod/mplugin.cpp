@@ -115,6 +115,10 @@ mBOOL DLLINTERNAL MPlugin::ini_parseline(const char *line) {
 	}
 	STRNCPY(filename, token, sizeof(filename));
 	normalize_pathname(filename);
+    
+	if(!resolve())
+		return mFALSE;
+    
 	// Store name of just the actual _file_, without dir components.
 	cp=strrchr(filename, '/');
 	if(cp)

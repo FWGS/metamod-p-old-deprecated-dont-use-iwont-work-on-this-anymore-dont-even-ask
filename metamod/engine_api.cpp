@@ -121,11 +121,11 @@
 	CLEAN_FORMATED_STRING()
 
 
-static int mm_PrecacheModel(char *s) {
+static int mm_PrecacheModel(const char *s) {
 	META_ENGINE_HANDLE(int, 0, FN_PRECACHEMODEL, pfnPrecacheModel, p, (s));
 	RETURN_API(int)
 }
-static int mm_PrecacheSound(char *s) {
+static int mm_PrecacheSound(const char *s) {
 	META_ENGINE_HANDLE(int, 0, FN_PRECACHESOUND, pfnPrecacheSound, p, (s));
 	RETURN_API(int)
 }
@@ -146,7 +146,7 @@ static void mm_SetSize(edict_t *e, const float *rgflMin, const float *rgflMax) {
 	META_ENGINE_HANDLE_void(FN_SETSIZE, pfnSetSize, 3p, (e, rgflMin, rgflMax));
 	RETURN_API_void()
 }
-static void mm_ChangeLevel(char *s1, char *s2) {
+static void mm_ChangeLevel(const char *s1, const char *s2) {
 	META_ENGINE_HANDLE_void(FN_CHANGELEVEL, pfnChangeLevel, 2p, (s1, s2));
 	RETURN_API_void()
 }
@@ -386,7 +386,7 @@ static void mm_CVarSetString(const char *szVarName, const char *szValue) {
 	RETURN_API_void()
 }
 
-static void mm_AlertMessage(ALERT_TYPE atype, char *szFmt, ...) {
+static void mm_AlertMessage(ALERT_TYPE atype, const char *szFmt, ...) {
 	META_ENGINE_HANDLE_void_varargs(FN_ALERTMESSAGE, pfnAlertMessage, ipV, atype, szFmt);
 	RETURN_API_void()
 }
@@ -635,20 +635,20 @@ static char *mm_GetInfoKeyBuffer(edict_t *e) {
 	META_ENGINE_HANDLE(char *, NULL, FN_GETINFOKEYBUFFER, pfnGetInfoKeyBuffer, p, (e));
 	RETURN_API(char *)
 }
-static char *mm_InfoKeyValue(char *infobuffer, char *key) {
+static char *mm_InfoKeyValue( char *infobuffer, const char *key) {
 	META_ENGINE_HANDLE(char *, NULL, FN_INFOKEYVALUE, pfnInfoKeyValue, 2p, (infobuffer, key));
 	RETURN_API(char *)
 }
-static void mm_SetKeyValue(char *infobuffer, char *key, char *value) {
+static void mm_SetKeyValue(char *infobuffer, const char *key, const char *value) {
 	META_ENGINE_HANDLE_void(FN_SETKEYVALUE, pfnSetKeyValue, 3p, (infobuffer, key, value));
 	RETURN_API_void()
 }
-static void mm_SetClientKeyValue(int clientIndex, char *infobuffer, char *key, char *value) {
+static void mm_SetClientKeyValue(int clientIndex, char *infobuffer, const char *key, const char *value) {
 	META_ENGINE_HANDLE_void(FN_SETCLIENTKEYVALUE, pfnSetClientKeyValue, i3p, (clientIndex, infobuffer, key, value));
 	RETURN_API_void()
 }
 
-static int mm_IsMapValid(char *filename) {
+static int mm_IsMapValid(const char *filename) {
 	META_ENGINE_HANDLE(int, 0, FN_ISMAPVALID, pfnIsMapValid, p, (filename));
 	RETURN_API(int)
 }
@@ -656,7 +656,7 @@ static void mm_StaticDecal( const float *origin, int decalIndex, int entityIndex
 	META_ENGINE_HANDLE_void(FN_STATICDECAL, pfnStaticDecal, p3i, (origin, decalIndex, entityIndex, modelIndex));
 	RETURN_API_void()
 }
-static int mm_PrecacheGeneric(char *s) {
+static int mm_PrecacheGeneric(const char *s) {
 	META_ENGINE_HANDLE(int, 0, FN_PRECACHEGENERIC, pfnPrecacheGeneric, p, (s));
 	RETURN_API(int)
 }
