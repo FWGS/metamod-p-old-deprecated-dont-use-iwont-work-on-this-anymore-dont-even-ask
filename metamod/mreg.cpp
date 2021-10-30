@@ -34,7 +34,7 @@
  *
  */
 
-#ifdef linux
+#ifdef __linux__
 // enable extra routines in system header files, like strsignal
 #  ifndef _GNU_SOURCE
 #    define _GNU_SOURCE

@@ -209,7 +209,7 @@ MPlugin * DLLINTERNAL MPluginList::find(const char *findpath) {
 //  - ME_NOTFOUND	couldn't find a matching plugin
 //  - errno's from DLFNAME()
 MPlugin * DLLINTERNAL MPluginList::find_memloc(void *memptr) {
-#ifdef linux
+#if 0
 	const char *dlfile;
 
 	if(!memptr)
@@ -250,7 +250,11 @@ MPlugin * DLLINTERNAL MPluginList::find_match(const char *prefix) {
 		RETURN_ERRNO(NULL, ME_ARGUMENT);
 	pfound=NULL;
 	len=strlen(prefix);
+#if ((defined(__linux__) && defined(__arm__)) || defined(__ANDROID__))
+	safevoid_snprintf(buf, sizeof(buf), "libmm_%s", prefix);
+#else
 	safevoid_snprintf(buf, sizeof(buf), "mm_%s", prefix);
+#endif
 	for(i=0; i < endlist; i++) {
 		iplug=&plist[i];
 		if(iplug->status < PL_VALID)
@@ -572,6 +576,7 @@ MPlugin * DLLINTERNAL MPluginList::plugin_addload(plid_t plid, const char *fname
 	
 	// copy filename
 	if(!pl_temp.plugin_parseline(fname, pl_loader->index)) {
+		META_DEBUG(1, ("Couldn't resolve given path into a file: %s", fname));
 		// parse_plugin_load doesn't return mFALSE.
 		RETURN_ERRNO(NULL, ME_NOTFOUND);
 	}
@@ -693,17 +698,67 @@ mBOOL DLLINTERNAL MPluginList::cmd_addload(const char *args) {
 	return(mTRUE);
 }
 
+mBOOL DLLINTERNAL MPluginList::env_startup()
+{
+	char pluginList[4096];
+	char *envPluginList;
+	
+	envPluginList = getenv( "MM_PLUGINS" );
+	if( !envPluginList )
+		return mFALSE;
+
+	strncpy( pluginList, envPluginList, sizeof( pluginList ) - 1);
+	pluginList[sizeof(pluginList)-1] = 0;	
+	
+	META_LOG("env: Begin reading plugins list: %s", envPluginList);
+	char *p;
+	int n;
+
+	for( n = 0, p = strtok( pluginList, " " ); p; p = strtok( NULL, " " ) )
+	{
+		// Parse directly into next entry in array
+		if(!plist[n].env_parseline(p)) {
+			if(meta_errno==ME_FORMAT)
+				META_WARNING("env: Skipping malformed line %s", p );
+			continue;
+		}
+		// Check for a duplicate - an existing entry with this pathname.
+		if(find(plist[n].pathname)) {
+			// Should we check platform specific level here?
+			META_INFO("env: Skipping duplicate plugin %s -> %s", p, plist[n].pathname);
+			continue;
+		}
+
+		plist[n].action=PA_LOAD;
+		META_LOG("env: Read plugin config for: %s", plist[n].desc);
+		n++;
+		endlist=n;		// mark end of list
+	}
+	META_LOG("env: Finished reading plugins list; Found %d plugins to load", n);
+
+	
+	
+	return(mTRUE);
+}
+
 // Load plugins at startup.
 // meta_errno values:
 //  - errno's from ini_startup()
 mBOOL DLLINTERNAL MPluginList::load() {
 	int i, n;
 
+#ifdef __ANDROID__
+	if(!env_startup()) {
+		META_WARNING("Can't load plugins from MM_PLUGINS envvar. Did you have set it?");
+		return(mFALSE);
+	}
+#else
 	if(!ini_startup()) {
 		META_WARNING("Problem loading plugins.ini: %s", inifile);
 		// meta_errno should be already set in ini_startup()
 		return(mFALSE);
 	}
+#endif
 
 	META_LOG("dll: Loading plugins...");
 	for(i=0, n=0; i < endlist; i++) {

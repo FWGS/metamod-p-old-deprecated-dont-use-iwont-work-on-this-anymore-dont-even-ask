@@ -43,19 +43,25 @@
 // We use these macros to hide our internal globals from being exported 
 // on ELF .so
 #if defined(__GNUC__) && !defined(_WIN32) && __GNUC__ >= 3 && __GNUC_MINOR__ >= 3
-	// Hidden data/function.
-	#define DLLHIDDEN __attribute__((visibility("hidden")))
-	// Hidden internal function.
-	#if defined(__x86_64__) || defined(__amd64__)
+	#ifdef __ANDROID__
+		#define DLLHIDDEN __attribute__((visibility("hidden")))
 		#define DLLINTERNAL __attribute__((visibility("internal")))
 		#define DLLINTERNAL_NOVIS
-	#else	
-		#ifdef __INTERNALS_USE_REGPARAMS__
-			#define DLLINTERNAL __attribute__((visibility("internal"), regparm(3)))
-			#define DLLINTERNAL_NOVIS __attribute__((regparm(3)))
-		#else
+	#else
+		// Hidden data/function.
+		#define DLLHIDDEN __attribute__((visibility("hidden")))
+		// Hidden internal function.
+		#if defined(__x86_64__) || defined(__amd64__)
 			#define DLLINTERNAL __attribute__((visibility("internal")))
 			#define DLLINTERNAL_NOVIS
+		#else	
+			#ifdef __INTERNALS_USE_REGPARAMS__
+				#define DLLINTERNAL __attribute__((visibility("internal"), regparm(3)))
+				#define DLLINTERNAL_NOVIS __attribute__((regparm(3)))
+			#else
+				#define DLLINTERNAL __attribute__((visibility("internal")))
+				#define DLLINTERNAL_NOVIS
+			#endif
 		#endif
 	#endif
 #else

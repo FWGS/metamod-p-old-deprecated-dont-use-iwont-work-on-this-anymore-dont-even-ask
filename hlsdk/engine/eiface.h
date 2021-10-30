@@ -320,7 +320,6 @@ typedef struct enginefuncs_s
 #endif /*__METAMOD_BUILD__*/
 } enginefuncs_t;
 
-
 // ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT.  INTERFACE VERSION IS FROZEN AT 138
 
 // Passed to pfnKeyValue

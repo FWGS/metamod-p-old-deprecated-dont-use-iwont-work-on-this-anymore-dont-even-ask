@@ -150,6 +150,7 @@ inline int DLLINTERNAL old_valid_file(char *path) {
 }
 int DLLINTERNAL valid_gamedir_file(const char *path);
 char * DLLINTERNAL full_gamedir_path(const char *path, char *fullpath);
+char * DLLINTERNAL full_libdir_path(const char *path, char *fullpath);
 
 // Turn a variable/function name into the corresponding string, optionally
 // stripping off the leading "len" characters.  Useful for things like

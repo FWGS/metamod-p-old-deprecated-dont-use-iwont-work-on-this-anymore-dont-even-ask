@@ -34,7 +34,7 @@
  *
  */
 
-#ifdef linux
+#ifdef __linux__
 // enable extra routines in system header files, like dladdr
 #  ifndef _GNU_SOURCE
 #    define _GNU_SOURCE
@@ -244,7 +244,7 @@ char * DLLINTERNAL str_GetLastError(void) {
 
 // Find the filename of the DLL/shared-lib where the given memory location
 // exists.
-#ifdef linux
+#ifdef __linux__
 // Errno values:
 //  - ME_NOTFOUND	couldn't find a sharedlib that contains memory location
 const char * DLLINTERNAL DLFNAME(void *memptr) {

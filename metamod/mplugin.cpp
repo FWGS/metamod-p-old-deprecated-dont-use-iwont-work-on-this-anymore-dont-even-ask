@@ -34,12 +34,15 @@
  *
  */
 
+
 #include <errno.h>				// errno, etc
 #include <malloc.h>				// malloc, etc
 #include <sys/types.h>			// stat
 #include <sys/stat.h>			// stat
 
 #include <extdll.h>				// always
+
+
 
 #include "mplugin.h"			// me
 #include "metamod.h"			// GameDLL, etc
@@ -96,11 +99,19 @@ mBOOL DLLINTERNAL MPlugin::ini_parseline(const char *line) {
 		free(tmp_line);
 		RETURN_ERRNO(mFALSE, ME_FORMAT);
 	}
+#ifdef __ANDROID__
+	if( !strcasecmp(token, "linux") )
+	{
+		pfspecific = 0;
+	}
+#else
 	if(strcasecmp(token, PLATFORM) == 0) {
 		pfspecific=0;
 	} else if(strcasecmp(token, PLATFORM_SPC) == 0) {
 		pfspecific=1;
-	} else {
+	}
+#endif
+	else {
 		// plugin is not for this OS
 		META_DEBUG(7, ("ini: Ignoring entry for %s", token));
 		free(tmp_line);
@@ -116,6 +127,8 @@ mBOOL DLLINTERNAL MPlugin::ini_parseline(const char *line) {
 	STRNCPY(filename, token, sizeof(filename));
 	normalize_pathname(filename);
     
+	status=PL_EMPTY;
+	
 	if(!resolve())
 		return mFALSE;
     
@@ -145,7 +158,7 @@ mBOOL DLLINTERNAL MPlugin::ini_parseline(const char *line) {
 
 	source=PS_INI;
 	status=PL_VALID;
-	
+		
 	free(tmp_line);
 	return(mTRUE);
 }
@@ -221,12 +234,43 @@ mBOOL DLLINTERNAL MPlugin::plugin_parseline(const char *fname, int loader_index)
 	// Grab description.
 	// Temporarily use plugin file, until plugin can be queried, and desc replaced with info->name.
 	safevoid_snprintf(desc, sizeof(desc), "<%s>", file);
+
+	// Make full pathname (from gamedir if relative, remove "..",
+	// backslashes, etc).
+#if defined(__ANDROID__)
+	STRNCPY( pathname, fname, sizeof( pathname ) );
+#else
+	full_gamedir_path(filename, pathname);
+#endif
+
+	source=PS_PLUGIN;
+	status=PL_VALID;
+	return(mTRUE);
+}
+
+mBOOL DLLINTERNAL MPlugin::env_parseline(const char *name)
+{
+	char *cp;
+		
+	// 
+	STRNCPY(filename, name, sizeof(filename));
+	normalize_pathname(filename);
+	// store name of just the actual _file_, without dir components
+	cp=strrchr(filename, '/');
+	if(cp)
+		file=cp+1;
+	else
+		file=filename;
+
+	// Grab description.
+	// Temporarily use plugin file, until plugin can be queried, and desc replaced with info->name.
+	safevoid_snprintf(desc, sizeof(desc), "<%s>", file);
 	
 	// Make full pathname (from gamedir if relative, remove "..",
 	// backslashes, etc).
-	full_gamedir_path(filename, pathname);
+	full_libdir_path(filename, pathname);
 	
-	source=PS_PLUGIN;
+	source=PS_INI;
 	status=PL_VALID;
 	return(mTRUE);
 }
@@ -280,14 +324,30 @@ mBOOL DLLINTERNAL MPlugin::resolve(void) {
 	char *found;
 	char *cp;
 	int len;
-	if(!check_input()) {
+
+	//if(!check_input()) {
 		// details logged, meta_errno set in check_input()
-		return(mFALSE);
+		//return(mFALSE);
+	//}
+	struct stat st;
+	// try this path
+	if(stat(filename, &st) == 0 && S_ISREG(st.st_mode))
+	{
+		found = filename;
 	}
-	if(is_absolute_path(filename))
-		found=resolve_prefix(filename);
 	else
-		found=resolve_dirs(filename);
+	{
+		if(is_absolute_path(filename))
+		{
+			// try this path
+			if(stat(filename, &st) == 0 && S_ISREG(st.st_mode))
+				found=filename;
+			if(!found)
+				found=resolve_prefix(filename);
+		}
+		else
+			found=resolve_dirs(filename);
+	}
 
 	if(!found) {
 		META_DEBUG(2, ("Couldn't resolve '%s' to file", filename));
@@ -325,17 +385,27 @@ char * DLLINTERNAL MPlugin::resolve_dirs(const char *path) {
 	char *found;
 	char *gamelibdir;
 	
-	gamelibdir = getenv("XASH3D_GAMELIBDIR");
+	gamelibdir = getenv("MM_GAMELIBDIR");
 	
 	if( gamelibdir )
 	{
-		safevoid_snprintf(buf, sizeof(buf), "%s/%s", gamelibdir, path);
-	// try this path
-	if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
-		return(buf);
-	// try other file prefixes in this path
-	if((found=resolve_prefix(buf)))
-		return(found);
+		// This is a rule, that plugins have libmm_ prefix, so hardcode it
+		// Don't let a zoo of names in AMXXOnAndroid!	
+		safevoid_snprintf(buf, sizeof(buf), "%s/libmm_%s", gamelibdir, path);
+		// try this path
+		if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+			return(buf);
+		
+		safevoid_snprintf(buf, sizeof(buf), "%s/libmm_%s.so", gamelibdir, path);
+		// try this path
+		if(stat(buf, &st) == 0 && S_ISREG(st.st_mode))
+			return(buf);
+		
+		/*// try other file prefixes in this path
+		if((found=resolve_prefix(buf)))
+			return(found);*/
+		
+		return NULL;
 	}
 
 	safevoid_snprintf(buf, sizeof(buf), "%s/%s", GameDLL.gamedir, path);
@@ -370,11 +440,12 @@ char * DLLINTERNAL MPlugin::resolve_prefix(const char *path) {
 	char dname[PATH_MAX];
 	static char buf[PATH_MAX];
 	char *found;
-
+	
 	// try "mm_" prefix FIRST.
 	// split into dirname and filename
 	STRNCPY(dname, path, sizeof(dname));
 	cp=strrchr(dname, '/');
+
 	if(cp) {
 		*cp='\0';
 		fname=cp+1;
@@ -491,7 +562,6 @@ char * DLLINTERNAL MPlugin::resolve_suffix(const char *path) {
 
 	return(NULL);
 }
-
 
 // Check if a passed string starts with a known platform postfix.
 // It does not check beyond the period in order to work for both

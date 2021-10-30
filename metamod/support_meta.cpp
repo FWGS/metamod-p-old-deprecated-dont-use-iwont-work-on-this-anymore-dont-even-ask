@@ -101,7 +101,8 @@ int DLLINTERNAL valid_gamedir_file(const char *path) {
 //
 // Much like realpath, buffer pointed to by fullpath is assumed to be 
 // able to store a string of PATH_MAX length.
-char * DLLINTERNAL full_gamedir_path(const char *path, char *fullpath) {
+char * DLLINTERNAL full_gamedir_path(const char *path, char *fullpath) 
+{
 	char buf[PATH_MAX];
 
 	// Build pathname from filename, plus gamedir if relative path.
@@ -109,6 +110,7 @@ char * DLLINTERNAL full_gamedir_path(const char *path, char *fullpath) {
 		STRNCPY(buf, path, sizeof(buf));
 	else
 		safevoid_snprintf(buf, sizeof(buf), "%s/%s", GameDLL.gamedir, path);
+
 	// Remove relative path components, if possible.
 	if(!realpath(buf, fullpath)) {
 		META_DEBUG(4, ("Unable to get realpath for '%s': %s", buf,
@@ -119,3 +121,25 @@ char * DLLINTERNAL full_gamedir_path(const char *path, char *fullpath) {
 	normalize_pathname(fullpath);
 	return(fullpath);
 }
+
+char * DLLINTERNAL full_libdir_path(const char *path, char *fullpath) 
+{
+	char buf[PATH_MAX];
+	char *envvar = getenv("MM_GAMELIBDIR");
+	
+	if(!envvar)
+	{
+		STRNCPY(fullpath, path, MAX_PATH);
+		return(fullpath);
+	}
+	
+	// Build pathname from plugin name
+	safevoid_snprintf(buf, sizeof(buf), "%s/libmm_%s.so", envvar, path);
+
+	STRNCPY( fullpath, buf, PATH_MAX );
+
+	// Replace backslashes, etc.
+	normalize_pathname(fullpath);
+	return(fullpath);
+}
+

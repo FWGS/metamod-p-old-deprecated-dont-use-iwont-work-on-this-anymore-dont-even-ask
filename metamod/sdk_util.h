@@ -68,41 +68,49 @@
 // The pfnIndexOfEdict() function takes a const edict_t pointer
 // as parameter anyway, so there is no reason why ENTINDEX()
 // shouldn't.
-inline int ENTINDEX(const edict_t *pEdict) { 
-	return((*g_engfuncs.pfnIndexOfEdict)(pEdict));
+inline int ENTINDEX(const edict_t *pEdict) {
+	return ((*g_engfuncs.pfnIndexOfEdict)(pEdict));
 }
 
 
 // Also, create some nice inlines for engine callback combos.
 
 // Get a setinfo value from a player entity.
-inline char * DLLINTERNAL ENTITY_KEYVALUE(edict_t *entity, char *key) {
-	return(INFOKEY_VALUE(GET_INFOKEYBUFFER(entity), key));
+inline char *ENTITY_KEYVALUE(edict_t *entity, const char *key) {
+	char *ifbuf=GET_INFOKEYBUFFER(entity);
+	return(INFOKEY_VALUE(ifbuf, key));
 }
 
 // Set a setinfo value for a player entity.
-inline void DLLINTERNAL ENTITY_SET_KEYVALUE(edict_t *entity, char *key, char *value) {
-	SET_CLIENT_KEYVALUE(ENTINDEX(entity), GET_INFOKEYBUFFER(entity), key, value);
+inline void ENTITY_SET_KEYVALUE(edict_t *entity, const char *key, const char *value) {
+	char *ifbuf=GET_INFOKEYBUFFER(entity);
+	SET_CLIENT_KEYVALUE(ENTINDEX(entity), ifbuf, key, value);
 }
 
 // Get a "serverinfo" value.
-inline char * DLLINTERNAL SERVERINFO(char *key) {
-	return(ENTITY_KEYVALUE(INDEXENT(0), key));
+inline char *SERVERINFO(const char *key) {
+	edict_t *server=INDEXENT(0);
+	return(ENTITY_KEYVALUE(server, key));
 }
 
 // Set a "serverinfo" value.
-inline void DLLINTERNAL SET_SERVERINFO(char *key, char *value) {
-	SET_SERVER_KEYVALUE(GET_INFOKEYBUFFER(INDEXENT(0)), key, value);
+inline void SET_SERVERINFO(const char *key, const char *value) {
+	edict_t *server=INDEXENT(0);
+	char *ifbuf=GET_INFOKEYBUFFER(server);
+	SET_SERVER_KEYVALUE(ifbuf, key, value);
 }
 
 // Get a "localinfo" value.
-inline char * DLLINTERNAL LOCALINFO(char *key) {
-	return(ENTITY_KEYVALUE(NULL, key));
+inline char *LOCALINFO(const char *key) {
+	edict_t *server=NULL;
+	return(ENTITY_KEYVALUE(server, (char *)key));
 }
 
 // Set a "localinfo" value.
-inline void DLLINTERNAL SET_LOCALINFO(char *key, char *value) {
-	SET_SERVER_KEYVALUE(GET_INFOKEYBUFFER(NULL), key, value);
+inline void SET_LOCALINFO(const char *key, const char *value) {
+	edict_t *server=NULL;
+	char *ifbuf=GET_INFOKEYBUFFER(server);
+	SET_SERVER_KEYVALUE(ifbuf, key, value);
 }
 
 inline int DLLINTERNAL fast_FNullEnt(const edict_t* pent) {

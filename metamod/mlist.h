@@ -77,6 +77,7 @@ class MPluginList : public class_metamod_new {
 		void DLLINTERNAL clear_source_plugin_index(int source_index);
 		void DLLINTERNAL trim_list(void);
 				
+		mBOOL DLLINTERNAL env_startup(void);			// read env at startup
 		mBOOL DLLINTERNAL ini_startup(void);			// read inifile at startup
 		mBOOL DLLINTERNAL ini_refresh(void);			// re-read inifile
 		mBOOL DLLINTERNAL cmd_addload(const char *args);	// load from console command

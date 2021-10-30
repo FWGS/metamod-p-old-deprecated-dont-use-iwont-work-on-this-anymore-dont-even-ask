@@ -119,7 +119,6 @@ class MPlugin : public class_metamod_new {
 	public:
 	// data:
 		// reordered for faster api_hook.cpp functions
-		PLUG_STATUS status;				// current status of plugin (loaded, etc)
 		api_tables_t tables;
 		api_tables_t post_tables;
 		
@@ -138,6 +137,8 @@ class MPlugin : public class_metamod_new {
 		int unloader_index;
 		mBOOL is_unloader;				// fix to prevent other plugins unload active unloader.
 		
+		PLUG_STATUS status;				// current status of plugin (loaded, etc)
+		
 		DLHANDLE handle;				// handle for dlopen, dlsym, etc
 		plugin_info_t *info;				// information plugin provides about itself
 		time_t time_loaded;				// when plugin was loaded
@@ -147,9 +148,12 @@ class MPlugin : public class_metamod_new {
 		char desc[MAX_DESC_LEN];			// ie "Test metamod plugin", from inifile
 		char pathname[PATH_MAX];			// UNIQUE, ie "/home/willday/half-life/cstrike/dlls/mm_test_i386.so", built with GameDLL.gamedir
 		
+
 	// functions:		
+		MPlugin() : status(PL_EMPTY) { }
 		mBOOL DLLINTERNAL ini_parseline(const char *line);		// parse line from inifile
 		mBOOL DLLINTERNAL cmd_parseline(const char *line);		// parse from console command
+		mBOOL DLLINTERNAL env_parseline(const char *line);
 		mBOOL DLLINTERNAL plugin_parseline(const char *fname, int loader_index); // parse from plugin
 		mBOOL DLLINTERNAL check_input(void);
 		
@@ -160,7 +164,6 @@ class MPlugin : public class_metamod_new {
 		static mBOOL DLLINTERNAL is_platform_postfix(const char *pf);
 
 		mBOOL DLLINTERNAL platform_match(MPlugin* plugin);
-		
 		mBOOL DLLINTERNAL load(PLUG_LOADTIME now);
 		mBOOL DLLINTERNAL unload(PLUG_LOADTIME now, PL_UNLOAD_REASON reason, PL_UNLOAD_REASON real_reason);
 		mBOOL DLLINTERNAL reload(PLUG_LOADTIME now, PL_UNLOAD_REASON reason);

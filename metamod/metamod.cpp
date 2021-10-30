@@ -361,6 +361,7 @@ mBOOL DLLINTERNAL meta_load_gamedll(void) {
 	}
 
 	// open the game DLL
+	META_LOG( "dll: Loading %s", GameDLL.pathname );
 	if(!(GameDLL.handle=DLOPEN(GameDLL.pathname))) {
 		META_WARNING("dll: Couldn't load game DLL %s: %s", GameDLL.pathname, 
 				DLERROR());

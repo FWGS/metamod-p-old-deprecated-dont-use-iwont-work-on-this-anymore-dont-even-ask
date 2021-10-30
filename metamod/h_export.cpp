@@ -86,7 +86,7 @@ engine_t Engine;
 C_DLLEXPORT void WINAPI GiveFnptrsToDll(enginefuncs_t *pengfuncsFromEngine, 
 		globalvars_t *pGlobals)
 {
-#ifdef linux
+#ifdef __linux__
 	metamod_handle = get_module_handle_of_memptr((void*)&g_engfuncs);
 #endif
 	gpGlobals = pGlobals;

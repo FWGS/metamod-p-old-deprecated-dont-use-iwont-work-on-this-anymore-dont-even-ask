@@ -184,15 +184,23 @@ public:
 	BufferedMessage *next;
 };
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 static BufferedMessage *messageQueueStart = NULL;
 static BufferedMessage *messageQueueEnd   = NULL;
 
 static void buffered_ALERT(MLOG_SERVICE service, ALERT_TYPE atype, const char *prefix, const char *fmt, va_list ap) {
 	char buf[MAX_LOGMSG_LEN];
 	BufferedMessage *msg;
-
+	
+	
 	if (NULL != g_engfuncs.pfnAlertMessage) {
 		vsnprintf(buf, sizeof(buf), fmt, ap);
+#ifdef __ANDROID__
+		__android_log_print( ANDROID_LOG_DEBUG, "Metamod", "%s", buf );
+#endif
 		ALERT(atype, "%s %s\n", prefix, buf);
 		return;
 	}
@@ -206,7 +214,11 @@ static void buffered_ALERT(MLOG_SERVICE service, ALERT_TYPE atype, const char *p
 	msg->service = service;
 	msg->atype = atype;
 	msg->prefix = prefix;
-	vsnprintf(msg->buf, sizeof(buf), fmt, ap);
+	
+	vsnprintf(msg->buf, sizeof(msg->buf), fmt, ap);
+#ifdef __ANDROID__
+	__android_log_print( ANDROID_LOG_DEBUG, "Metamod", "%s", msg->buf );
+#endif
 	msg->next = NULL;
 
 	if (NULL == messageQueueEnd) {

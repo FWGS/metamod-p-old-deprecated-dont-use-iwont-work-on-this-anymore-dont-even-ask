@@ -96,7 +96,7 @@ void DLLINTERNAL my_closedir(DIR *dir)
 #endif /* _WIN32 */
 
 //get module handle of memptr
-#ifdef linux
+#ifdef __linux__
 DLHANDLE DLLINTERNAL get_module_handle_of_memptr(void * memptr)
 {
 	Dl_info dli;

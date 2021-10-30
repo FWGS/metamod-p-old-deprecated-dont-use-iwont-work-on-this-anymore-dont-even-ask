@@ -67,11 +67,9 @@ const char * DLLINTERNAL autodetect_gamedll(const gamedll_t *gamedll, const char
 	struct dirent *ent;
 	unsigned int fn_len;
 	
-	#ifdef __ANDROID__
-	
+#ifdef __ANDROID__
 	return autodetect_gamedll_android(gamedll, knownfn);
-	
-	#endif
+#endif
 		
 	// Generate dllpath
 	safevoid_snprintf(buf, sizeof(buf), "%s/dlls", gamedll->gamedir);
@@ -86,10 +84,10 @@ const char * DLLINTERNAL autodetect_gamedll(const gamedll_t *gamedll, const char
 	safevoid_snprintf(fnpath, sizeof(fnpath), "%s/%s", dllpath, knownfn);
 	
 	// Check if knownfn exists and is valid gamedll
-	if(is_gamedll(fnpath)) {
+	/*if(is_gamedll(fnpath)) {
 		// knownfn exists and is loadable gamedll, return 0.
 		return(0);
-	}
+	}*/
 	
 	// Open directory
 	if(!(dir = opendir(dllpath))) {
@@ -134,13 +132,13 @@ const char * DLLINTERNAL autodetect_gamedll(const gamedll_t *gamedll, const char
 		safevoid_snprintf(fnpath, sizeof(fnpath), "%s/%s", dllpath, ent->d_name);
 		
 		// Check if dll is gamedll
-		if(is_gamedll(fnpath)) {
+		/*if(is_gamedll(fnpath)) {
 			META_DEBUG(8, ("is_gamedll(%s): ok.", fnpath));
 			//gamedll detected
 			STRNCPY(buf, ent->d_name, sizeof(buf));
 			closedir(dir);
 			return(buf);
-		}
+		}*/
 		META_DEBUG(8, ("is_gamedll(%s): failed.", fnpath));
 	}
 	
